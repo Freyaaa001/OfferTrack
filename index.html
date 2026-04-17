@@ -1,0 +1,1113 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>OfferTrack · 求职申请管理看板</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<script>
+  tailwind.config = {
+    theme: {
+      extend: {
+        colors: {
+          brand: { 50:'#eef4ff', 100:'#dbe6ff', 500:'#4f6df5', 600:'#3d56d8', 700:'#2f42b0' },
+        }
+      }
+    }
+  }
+</script>
+<style>
+  * { -webkit-font-smoothing: antialiased; }
+  html { font-size: 14px; }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'PingFang SC', 'Helvetica Neue', sans-serif; }
+  .scroll-thin::-webkit-scrollbar { width: 6px; height: 6px; }
+  .scroll-thin::-webkit-scrollbar-thumb { background: #d4d4d8; border-radius: 3px; }
+  .scroll-thin::-webkit-scrollbar-track { background: transparent; }
+  .fade-in { animation: fadeIn 0.2s ease-out; }
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }
+  .drawer-enter { animation: drawerIn 0.25s cubic-bezier(0.4, 0, 0.2, 1); }
+  @keyframes drawerIn { from { transform: translateX(100%); } to { transform: translateX(0); } }
+  [contenteditable]:focus { outline: 2px solid #4f6df5; outline-offset: 2px; border-radius: 4px; }
+  select.inline-edit { appearance: none; -webkit-appearance: none; background: transparent; border: none; padding: 3px 8px 3px 6px; border-radius: 4px; cursor: pointer; font: inherit; color: inherit; max-width: 100%; }
+  select.inline-edit:hover { background: rgba(0,0,0,0.04); }
+  input.inline-edit { background: transparent; border: none; padding: 3px 6px; border-radius: 4px; width: 100%; font: inherit; color: inherit; }
+  input.inline-edit:hover { background: rgba(0,0,0,0.04); }
+  input.inline-edit:focus { background: #fff; outline: 1px solid #4f6df5; outline-offset: -1px; }
+  /* 表格行 hover 时才显示操作按钮 */
+  .row-actions { opacity: 0; transition: opacity 0.15s; }
+  tr:hover .row-actions { opacity: 1; }
+</style>
+</head>
+<body class="bg-zinc-50 text-zinc-900">
+
+<div id="app" class="flex h-screen overflow-hidden">
+
+  <!-- ============ 侧边栏 ============ -->
+  <aside class="w-56 bg-white border-r border-zinc-200 flex flex-col flex-shrink-0">
+    <div class="h-14 flex items-center px-5 border-b border-zinc-200">
+      <div class="w-7 h-7 rounded-md bg-gradient-to-br from-brand-500 to-brand-700 flex items-center justify-center text-white font-bold text-sm mr-2">O</div>
+      <span class="font-semibold text-zinc-800">OfferTrack</span>
+    </div>
+
+    <nav class="flex-1 px-3 py-4 space-y-1">
+      <a data-route="dashboard" class="nav-item flex items-center px-3 py-2 text-sm rounded-lg cursor-pointer">
+        <svg class="w-4 h-4 mr-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
+        首页
+      </a>
+      <a data-route="applications" class="nav-item flex items-center px-3 py-2 text-sm rounded-lg cursor-pointer">
+        <svg class="w-4 h-4 mr-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
+        我的申请
+      </a>
+      <a data-route="settings" class="nav-item flex items-center px-3 py-2 text-sm rounded-lg cursor-pointer">
+        <svg class="w-4 h-4 mr-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+        设置
+      </a>
+    </nav>
+
+    <div class="p-4 border-t border-zinc-200">
+      <div class="flex items-center">
+        <div id="sidebar-avatar" class="w-8 h-8 rounded-full bg-gradient-to-br from-pink-400 to-orange-400 flex items-center justify-center text-white text-xs font-semibold mr-2">F</div>
+        <div class="flex-1 min-w-0">
+          <div id="sidebar-name" class="text-sm font-medium text-zinc-800 truncate">Freya</div>
+          <div id="sidebar-email" class="text-xs text-zinc-500 truncate">freyawang.nj@gmail.com</div>
+        </div>
+      </div>
+    </div>
+  </aside>
+
+  <!-- ============ 主内容区 ============ -->
+  <main id="main-content" class="flex-1 overflow-auto scroll-thin"></main>
+
+</div>
+
+<!-- ============ Modal：新建申请 ============ -->
+<div id="modal-new" class="hidden fixed inset-0 bg-black/40 z-50 flex items-center justify-center">
+  <div class="bg-white rounded-xl shadow-2xl w-[560px] max-h-[90vh] overflow-auto scroll-thin fade-in">
+    <div class="px-6 py-4 border-b border-zinc-200 flex items-center justify-between">
+      <h2 class="font-semibold text-zinc-800">新建申请</h2>
+      <button onclick="closeModal('modal-new')" class="text-zinc-400 hover:text-zinc-600 text-xl leading-none">&times;</button>
+    </div>
+
+    <div class="p-6 space-y-5">
+      <!-- JD 链接模式 -->
+      <div class="bg-brand-50 border border-brand-100 rounded-lg p-4">
+        <div class="flex items-center mb-2">
+          <span class="text-sm font-medium text-brand-700">✨ 粘贴 JD 链接自动解析</span>
+          <span class="ml-2 text-xs text-brand-500 bg-white px-1.5 py-0.5 rounded">推荐</span>
+        </div>
+        <div class="flex gap-2">
+          <input id="jd-url" type="text" placeholder="https://jobs.bytedance.com/..." class="flex-1 px-3 py-2 text-sm border border-zinc-200 rounded-md focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent">
+          <button onclick="parseJD()" class="px-4 py-2 text-sm bg-brand-600 text-white rounded-md hover:bg-brand-700">解析</button>
+        </div>
+        <div id="jd-result" class="hidden mt-2 text-xs text-green-700">✓ 解析成功，已自动填充下方字段</div>
+      </div>
+
+      <div class="text-center text-xs text-zinc-400">— 或手动填写 —</div>
+
+      <div class="space-y-4">
+        <div class="grid grid-cols-2 gap-4">
+          <div>
+            <label class="block text-xs text-zinc-600 mb-1">公司 <span class="text-red-500">*</span></label>
+            <input id="f-company" type="text" class="w-full px-3 py-2 text-sm border border-zinc-200 rounded-md focus:outline-none focus:ring-2 focus:ring-brand-500">
+          </div>
+          <div>
+            <label class="block text-xs text-zinc-600 mb-1">岗位 <span class="text-red-500">*</span></label>
+            <input id="f-position" type="text" class="w-full px-3 py-2 text-sm border border-zinc-200 rounded-md focus:outline-none focus:ring-2 focus:ring-brand-500">
+          </div>
+        </div>
+
+        <div class="grid grid-cols-2 gap-4">
+          <div>
+            <label class="block text-xs text-zinc-600 mb-1">优先级</label>
+            <select id="f-priority" class="w-full px-3 py-2 text-sm border border-zinc-200 rounded-md focus:outline-none focus:ring-2 focus:ring-brand-500">
+              <option>Match</option><option>Dream</option><option>Safety</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-xs text-zinc-600 mb-1">当前阶段</label>
+            <select id="f-stage" class="w-full px-3 py-2 text-sm border border-zinc-200 rounded-md focus:outline-none focus:ring-2 focus:ring-brand-500"></select>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-2 gap-4">
+          <div>
+            <label class="block text-xs text-zinc-600 mb-1">下一步动作</label>
+            <input id="f-next-action" type="text" placeholder="如：完成在线笔试" class="w-full px-3 py-2 text-sm border border-zinc-200 rounded-md focus:outline-none focus:ring-2 focus:ring-brand-500">
+          </div>
+          <div>
+            <label class="block text-xs text-zinc-600 mb-1">DDL</label>
+            <input id="f-deadline" type="date" class="w-full px-3 py-2 text-sm border border-zinc-200 rounded-md focus:outline-none focus:ring-2 focus:ring-brand-500">
+          </div>
+        </div>
+
+        <div>
+          <label class="block text-xs text-zinc-600 mb-1">投递渠道</label>
+          <select id="f-channel" class="w-full px-3 py-2 text-sm border border-zinc-200 rounded-md focus:outline-none focus:ring-2 focus:ring-brand-500">
+            <option>官网</option><option>内推</option><option>校招会</option><option>猎头</option><option>其他</option>
+          </select>
+        </div>
+
+        <div>
+          <label class="block text-xs text-zinc-600 mb-1">标签</label>
+          <div id="f-tags" class="flex flex-wrap gap-1.5"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="px-6 py-3 border-t border-zinc-200 flex justify-end gap-2 bg-zinc-50 rounded-b-xl">
+      <button onclick="closeModal('modal-new')" class="px-4 py-2 text-sm text-zinc-600 hover:bg-zinc-100 rounded-md">取消</button>
+      <button onclick="submitNew()" class="px-4 py-2 text-sm bg-brand-600 text-white rounded-md hover:bg-brand-700">创建</button>
+    </div>
+  </div>
+</div>
+
+<!-- ============ Drawer：申请详情 ============ -->
+<div id="drawer-detail" class="hidden fixed inset-0 z-40">
+  <div class="absolute inset-0 bg-black/30" onclick="closeDrawer()"></div>
+  <div class="absolute right-0 top-0 h-full w-[600px] bg-white shadow-2xl overflow-auto scroll-thin drawer-enter">
+    <div id="drawer-content"></div>
+  </div>
+</div>
+
+<script>
+/* ==========================================================
+   数据层
+   ========================================================== */
+const STAGES = ['待网申', '已投递', '待测评', '待笔试', '已笔试', '待确认面试', '一面', '二面', '终面', 'HR面', '待回复Offer', 'Offer', '已签约', '已拒', '已放弃'];
+const PRIORITIES = ['Dream', 'Match', 'Safety'];
+const PRESET_TAGS = {
+  '行业': ['互联网', '金融', '咨询', '快消', '国企', '制造', '科研'],
+  '岗位': ['技术', '产品', '运营', '数据', '市场', '设计', '管培'],
+  '地点': ['北京', '上海', '深圳', '广州', '杭州', '海外', '远程'],
+  '性质': ['外企', '国企', '民企', '创业']
+};
+const CHANNELS = ['官网', '内推', '校招会', '猎头', '其他'];
+
+const STAGE_GROUPS = {
+  todo: ['待网申', '待测评', '待笔试', '待确认面试', '待回复Offer'],
+  interview: ['一面', '二面', '终面', 'HR面'],
+  waiting: ['已投递', '已笔试'],
+  closed: ['Offer', '已签约', '已拒', '已放弃']
+};
+
+const PRIORITY_STYLE = {
+  'Dream':  { emoji: '🔥', cls: 'text-rose-600 bg-rose-50' },
+  'Match':  { emoji: '⭐', cls: 'text-amber-600 bg-amber-50' },
+  'Safety': { emoji: '🛡', cls: 'text-zinc-600 bg-zinc-100' }
+};
+
+const STAGE_STYLE = {
+  '待网申':       'bg-zinc-100 text-zinc-700',
+  '已投递':       'bg-blue-100 text-blue-700',
+  '待测评':       'bg-indigo-100 text-indigo-700',
+  '待笔试':       'bg-indigo-100 text-indigo-700',
+  '已笔试':       'bg-cyan-100 text-cyan-700',
+  '待确认面试':   'bg-purple-100 text-purple-700',
+  '一面':         'bg-purple-100 text-purple-700',
+  '二面':         'bg-purple-200 text-purple-800',
+  '终面':         'bg-purple-300 text-purple-900',
+  'HR面':         'bg-fuchsia-100 text-fuchsia-700',
+  '待回复Offer':  'bg-green-100 text-green-700',
+  'Offer':        'bg-green-500 text-white',
+  '已签约':       'bg-green-700 text-white',
+  '已拒':         'bg-zinc-200 text-zinc-500 line-through',
+  '已放弃':       'bg-zinc-200 text-zinc-500 line-through'
+};
+
+// 动态日期辅助函数，保证演示数据始终有"今天"的情况
+const _d = new Date();
+const _todayStr = _d.toISOString().slice(0, 10);
+const _offsetDate = (days) => {
+  const d = new Date(_d);
+  d.setDate(d.getDate() + days);
+  return d.toISOString().slice(0, 10);
+};
+
+// Mock 种子数据
+const SEED_DATA = [
+  {
+    id: 'a1', company: '字节跳动', position: '产品经理',
+    priority: 'Dream', stage: '二面',
+    nextAction: '准备case面试', deadline: _offsetDate(3),
+    applyDate: _offsetDate(-30), channel: '内推',
+    tags: ['互联网', '产品', '北京'], location: '北京',
+    salary: '25-40k', referrer: '张同学',
+    jdUrl: 'https://jobs.bytedance.com/experienced/position/7123/detail',
+    notes: '组内做推荐算法中台，面试官背景是清华+字节5年。一面聊了三个项目，问了很多深度问题。',
+    interviews: [
+      { round: '一面', time: `${_offsetDate(-14)} 15:00`, result: '通过', notes: '深挖项目细节，case 很灵活' },
+      { round: '二面', time: `${_todayStr} 14:00`, result: '待定', notes: '' }
+    ]
+  },
+  {
+    id: 'a2', company: '美团', position: '数据分析师',
+    priority: 'Match', stage: '待笔试',
+    nextAction: '完成在线测评', deadline: _todayStr,
+    applyDate: _offsetDate(-15), channel: '官网',
+    tags: ['互联网', '数据', '北京'], location: '北京',
+    salary: '20-30k', referrer: '',
+    jdUrl: '', notes: '今天必须完成测评，否则流程作废', interviews: []
+  },
+  {
+    id: 'a3', company: '腾讯', position: '产品运营',
+    priority: 'Match', stage: '已投递',
+    nextAction: '', deadline: '',
+    applyDate: '2026-03-20', channel: '官网',
+    tags: ['互联网', '运营', '深圳'], location: '深圳',
+    salary: '', referrer: '',
+    jdUrl: '', notes: '投了快一个月了还没消息，可能凉了', interviews: []
+  },
+  {
+    id: 'a4', company: '阿里巴巴', position: '战略投资',
+    priority: 'Dream', stage: '一面',
+    nextAction: '确认面试时间', deadline: '2026-04-22',
+    applyDate: '2026-03-25', channel: '内推',
+    tags: ['互联网', '金融', '杭州'], location: '杭州',
+    salary: '30-50k', referrer: '李学长',
+    jdUrl: '', notes: '', interviews: []
+  },
+  {
+    id: 'a5', company: '中金公司', position: '研究员',
+    priority: 'Dream', stage: 'Offer',
+    nextAction: '', deadline: '',
+    applyDate: '2026-02-10', channel: '校招会',
+    tags: ['金融', '数据', '北京'], location: '北京',
+    salary: '25-35k', referrer: '',
+    jdUrl: '', notes: '宏观研究方向，拿到口头offer，等正式函', interviews: []
+  },
+  {
+    id: 'a6', company: '招商证券', position: '投行分析师',
+    priority: 'Match', stage: '已拒',
+    nextAction: '', deadline: '',
+    applyDate: '2026-02-20', channel: '官网',
+    tags: ['金融', '北京'], location: '北京',
+    salary: '', referrer: '',
+    jdUrl: '', notes: '二面被挂，问了很多固收的东西，没准备充分', interviews: []
+  },
+  {
+    id: 'a7', company: '网易', position: '游戏策划',
+    priority: 'Safety', stage: '已投递',
+    nextAction: '', deadline: '',
+    applyDate: '2026-03-10', channel: '官网',
+    tags: ['互联网', '产品', '杭州'], location: '杭州',
+    salary: '', referrer: '',
+    jdUrl: '', notes: '', interviews: []
+  },
+  {
+    id: 'a8', company: '毕马威', position: '审计',
+    priority: 'Safety', stage: '待回复Offer',
+    nextAction: '回复是否接受', deadline: '2026-04-19',
+    applyDate: '2026-02-01', channel: '校招会',
+    tags: ['咨询', '外企', '上海'], location: '上海',
+    salary: '12-15k', referrer: '',
+    jdUrl: '', notes: '保底 offer，纠结中', interviews: []
+  }
+];
+
+// localStorage 数据读写
+const DB_KEY = 'offertrack_v1';
+const SETTINGS_KEY = 'offertrack_settings';
+
+function loadSettings() {
+  const raw = localStorage.getItem(SETTINGS_KEY);
+  const defaults = { nickname: '用户', email: 'user@example.com' };
+  if (!raw) return defaults;
+  try { return { ...defaults, ...JSON.parse(raw) }; } catch { return defaults; }
+}
+function saveSettings(patch) {
+  const settings = { ...loadSettings(), ...patch };
+  localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings));
+  syncSidebar();
+}
+function syncSidebar() {
+  const s = loadSettings();
+  const avatarEl = document.getElementById('sidebar-avatar');
+  const nameEl = document.getElementById('sidebar-name');
+  const emailEl = document.getElementById('sidebar-email');
+  if (avatarEl) avatarEl.textContent = (s.nickname || 'U')[0].toUpperCase();
+  if (nameEl) nameEl.textContent = s.nickname || '未设置';
+  if (emailEl) emailEl.textContent = s.email || '未设置';
+}
+
+function loadData() {
+  const raw = localStorage.getItem(DB_KEY);
+  if (!raw) {
+    localStorage.setItem(DB_KEY, JSON.stringify(SEED_DATA));
+    return [...SEED_DATA];
+  }
+  try {
+    const data = JSON.parse(raw);
+    // 修复被损坏的 priority 值（如 "🔥 Dream" → "Dream"）
+    let dirty = false;
+    data.forEach(app => {
+      if (app.priority && !PRIORITIES.includes(app.priority)) {
+        const found = PRIORITIES.find(p => app.priority.includes(p));
+        if (found) { app.priority = found; dirty = true; }
+        else { app.priority = 'Match'; dirty = true; }
+      }
+    });
+    if (dirty) localStorage.setItem(DB_KEY, JSON.stringify(data));
+    return data;
+  } catch { return [...SEED_DATA]; }
+}
+function saveData(data) { localStorage.setItem(DB_KEY, JSON.stringify(data)); }
+function updateApp(id, patch) {
+  const data = loadData();
+  const idx = data.findIndex(a => a.id === id);
+  if (idx >= 0) {
+    const app = data[idx];
+    data[idx] = { ...app, ...patch };
+
+    // 当阶段变为面试轮次时，自动添加面试记录
+    const interviewStages = ['一面', '二面', '终面', 'HR面'];
+    if (patch.stage && interviewStages.includes(patch.stage)) {
+      if (!data[idx].interviews) data[idx].interviews = [];
+      const exists = data[idx].interviews.some(iv => iv.round === patch.stage);
+      if (!exists) {
+        // 将上一轮标记为"通过"
+        const prevRound = data[idx].interviews.length > 0
+          ? data[idx].interviews[data[idx].interviews.length - 1]
+          : null;
+        if (prevRound && prevRound.result === '待定') {
+          prevRound.result = '通过';
+        }
+        // 新增当前轮次
+        data[idx].interviews.push({
+          round: patch.stage,
+          time: '',
+          result: '待定',
+          notes: ''
+        });
+      }
+    }
+
+    saveData(data);
+  }
+  render();
+}
+function deleteApp(id) {
+  if (!confirm('确定删除这条申请记录吗？')) return;
+  saveData(loadData().filter(a => a.id !== id));
+  closeDrawer();
+  render();
+}
+function addApp(app) {
+  const data = loadData();
+  data.unshift({ ...app, id: 'a' + Date.now() });
+  saveData(data);
+  render();
+}
+
+/* ==========================================================
+   工具函数
+   ========================================================== */
+function daysUntil(dateStr) {
+  if (!dateStr) return null;
+  const target = new Date(dateStr + 'T23:59:59');
+  const now = new Date();
+  return Math.ceil((target - now) / (1000 * 60 * 60 * 24));
+}
+function ddlColor(dateStr) {
+  const d = daysUntil(dateStr);
+  if (d === null) return 'text-zinc-400';
+  if (d < 0) return 'text-zinc-400 line-through';
+  if (d < 1) return 'text-red-600 font-semibold';
+  if (d < 4) return 'text-amber-600 font-medium';
+  return 'text-zinc-600';
+}
+function ddlText(dateStr) {
+  if (!dateStr) return '—';
+  const d = daysUntil(dateStr);
+  if (d < 0) return dateStr + ' · 已过期';
+  if (d === 0) return dateStr + ' · 今天';
+  if (d === 1) return dateStr + ' · 明天';
+  if (d < 7) return dateStr + ` · ${d}天后`;
+  return dateStr;
+}
+function daysSince(dateStr) {
+  if (!dateStr) return null;
+  const start = new Date(dateStr);
+  const now = new Date();
+  return Math.floor((now - start) / (1000 * 60 * 60 * 24));
+}
+
+/* ==========================================================
+   路由层
+   ========================================================== */
+let currentRoute = 'dashboard';
+let currentTab = 'all';
+let currentSearch = '';
+let currentTagFilter = [];
+
+function navigate(route) {
+  currentRoute = route;
+  document.querySelectorAll('.nav-item').forEach(el => {
+    const active = el.dataset.route === route;
+    el.className = 'nav-item flex items-center px-3 py-2 text-sm rounded-lg cursor-pointer ' +
+      (active ? 'bg-brand-50 text-brand-700 font-medium' : 'text-zinc-600 hover:bg-zinc-50');
+  });
+  render();
+}
+
+document.querySelectorAll('.nav-item').forEach(el => {
+  el.addEventListener('click', () => navigate(el.dataset.route));
+});
+
+/* ==========================================================
+   视图：首页 Dashboard
+   ========================================================== */
+function renderDashboard() {
+  const data = loadData();
+  const today = new Date().toISOString().slice(0, 10);
+
+  // 今天必做：今日 DDL + 今日面试
+  const todayTasks = [];
+  data.forEach(app => {
+    if (app.deadline === today) {
+      todayTasks.push({ type: 'ddl', app, label: app.nextAction || '处理 DDL' });
+    }
+    app.interviews?.forEach(iv => {
+      if (iv.time?.startsWith(today) && iv.result === '待定') {
+        todayTasks.push({ type: 'interview', app, label: `${iv.round} · ${iv.time.slice(11)}` });
+      }
+    });
+  });
+
+  // 漏斗数据
+  const total = data.length;
+  const pastApply = data.filter(a => !['待网申'].includes(a.stage)).length;
+  const pastTest = data.filter(a => !['待网申', '已投递', '待测评', '待笔试'].includes(a.stage)).length;
+  const pastInterview = data.filter(a => STAGE_GROUPS.interview.includes(a.stage) || ['Offer','已签约','待回复Offer'].includes(a.stage)).length;
+  const offers = data.filter(a => ['Offer', '已签约'].includes(a.stage)).length;
+
+  // 待跟进（投递超 14 天无响应）
+  const ghosted = data.filter(a => a.stage === '已投递' && daysSince(a.applyDate) > 14);
+
+  const now = new Date();
+  const weekday = ['周日','周一','周二','周三','周四','周五','周六'][now.getDay()];
+
+  return `
+    <div class="max-w-5xl mx-auto px-8 py-8 fade-in">
+      <div class="mb-8">
+        <h1 class="text-2xl font-bold text-zinc-900">👋 早上好，${loadSettings().nickname}</h1>
+        <p class="text-sm text-zinc-500 mt-1">${today} · ${weekday} · 距离秋招结束还有 XX 天</p>
+      </div>
+
+      <!-- 今天必做 -->
+      <div class="bg-white rounded-xl border border-zinc-200 p-6 mb-6">
+        <div class="flex items-center justify-between mb-4">
+          <h2 class="font-semibold text-zinc-800 flex items-center">
+            <span class="mr-2">🔥</span> 今天必做
+            ${todayTasks.length ? `<span class="ml-2 text-xs px-1.5 py-0.5 bg-red-100 text-red-600 rounded">${todayTasks.length}</span>` : ''}
+          </h2>
+        </div>
+        ${todayTasks.length === 0
+          ? '<div class="text-sm text-zinc-400 py-4 text-center">✨ 今天没有紧急事项，去准备下周的面试吧</div>'
+          : `<div class="space-y-2">
+              ${todayTasks.map(t => `
+                <div onclick="openDrawer('${t.app.id}')" class="flex items-center p-3 rounded-lg bg-zinc-50 hover:bg-brand-50 cursor-pointer transition-colors">
+                  <span class="w-8 h-8 rounded-full ${t.type==='interview'?'bg-purple-100':'bg-red-100'} flex items-center justify-center mr-3">
+                    ${t.type==='interview'?'🎤':'⏰'}
+                  </span>
+                  <div class="flex-1 min-w-0">
+                    <div class="text-sm font-medium text-zinc-800">${t.app.company} · ${t.app.position}</div>
+                    <div class="text-xs text-zinc-500 mt-0.5">${t.label}</div>
+                  </div>
+                  <svg class="w-4 h-4 text-zinc-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+                </div>
+              `).join('')}
+            </div>`}
+      </div>
+
+      <!-- 求职漏斗 -->
+      <div class="bg-white rounded-xl border border-zinc-200 p-6 mb-6">
+        <h2 class="font-semibold text-zinc-800 mb-4">📊 我的求职漏斗</h2>
+        <div class="grid grid-cols-4 gap-3">
+          ${[
+            { label: '已投递', val: pastApply, base: total, color: 'bg-blue-500' },
+            { label: '进入笔试+', val: pastTest, base: total, color: 'bg-indigo-500' },
+            { label: '进入面试+', val: pastInterview, base: total, color: 'bg-purple-500' },
+            { label: '获得 Offer', val: offers, base: total, color: 'bg-green-500' },
+          ].map(s => `
+            <div class="text-center">
+              <div class="text-3xl font-bold text-zinc-900">${s.val}</div>
+              <div class="text-xs text-zinc-500 mt-1">${s.label}</div>
+              <div class="mt-2 h-1.5 bg-zinc-100 rounded-full overflow-hidden">
+                <div class="h-full ${s.color}" style="width: ${s.base ? (s.val/s.base*100) : 0}%"></div>
+              </div>
+              <div class="text-xs text-zinc-400 mt-1">${s.base ? Math.round(s.val/s.base*100) : 0}%</div>
+            </div>
+          `).join('')}
+        </div>
+      </div>
+
+      <!-- 待跟进提醒 -->
+      ${ghosted.length ? `
+      <div class="bg-amber-50 border border-amber-200 rounded-xl p-5">
+        <div class="flex items-start">
+          <span class="text-2xl mr-3">⏳</span>
+          <div class="flex-1">
+            <h3 class="font-medium text-amber-900">有 ${ghosted.length} 家公司投递超过 14 天无响应</h3>
+            <p class="text-sm text-amber-700 mt-1">可以主动跟进 HR，或标记为"已放弃"释放心理空间</p>
+            <div class="mt-3 space-y-1">
+              ${ghosted.map(a => `
+                <div onclick="openDrawer('${a.id}')" class="text-sm text-amber-800 hover:underline cursor-pointer">
+                  • ${a.company} · ${a.position}（${daysSince(a.applyDate)} 天前投递）
+                </div>
+              `).join('')}
+            </div>
+          </div>
+        </div>
+      </div>` : ''}
+    </div>
+  `;
+}
+
+/* ==========================================================
+   视图：申请列表页
+   ========================================================== */
+function matchesTab(app, tab) {
+  const today = new Date().toISOString().slice(0, 10);
+  switch(tab) {
+    case 'all': return true;
+    case 'todo': return STAGE_GROUPS.todo.includes(app.stage);
+    case 'interview': return STAGE_GROUPS.interview.includes(app.stage);
+    case 'waiting': return STAGE_GROUPS.waiting.includes(app.stage);
+    case 'closed': return STAGE_GROUPS.closed.includes(app.stage);
+    default: return true;
+  }
+}
+
+function renderApplications() {
+  const data = loadData();
+
+  // 计算各 Tab 计数
+  const tabCounts = {
+    all: data.length,
+    todo: data.filter(a => matchesTab(a, 'todo')).length,
+    interview: data.filter(a => matchesTab(a, 'interview')).length,
+    waiting: data.filter(a => matchesTab(a, 'waiting')).length,
+    closed: data.filter(a => matchesTab(a, 'closed')).length
+  };
+
+  // 筛选
+  let filtered = data.filter(a => matchesTab(a, currentTab));
+  if (currentSearch) {
+    const q = currentSearch.toLowerCase();
+    filtered = filtered.filter(a =>
+      a.company.toLowerCase().includes(q) ||
+      a.position.toLowerCase().includes(q)
+    );
+  }
+  if (currentTagFilter.length) {
+    filtered = filtered.filter(a => currentTagFilter.every(t => a.tags?.includes(t)));
+  }
+
+  const tabs = [
+    { key: 'all', label: '全部投递' },
+    { key: 'todo', label: '待处理', badge: 'red' },
+    { key: 'interview', label: '待面试' },
+    { key: 'waiting', label: '等待反馈' },
+    { key: 'closed', label: '已结束' }
+  ];
+
+  return `
+    <div class="max-w-7xl mx-auto px-6 py-6 fade-in">
+      <!-- 标题栏 -->
+      <div class="flex items-center justify-between mb-5">
+        <div>
+          <h1 class="text-xl font-bold text-zinc-900">我的申请</h1>
+          <p class="text-xs text-zinc-500 mt-0.5">共 ${data.length} 条记录</p>
+        </div>
+        <button onclick="openModal('modal-new')" class="px-3.5 py-2 bg-brand-600 text-white text-sm font-medium rounded-md hover:bg-brand-700 flex items-center whitespace-nowrap">
+          <svg class="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+          新建申请
+        </button>
+      </div>
+
+      <!-- Tab 栏 -->
+      <div class="bg-white rounded-t-xl border border-zinc-200 border-b-0">
+        <div class="flex items-center border-b border-zinc-200 px-2 overflow-x-auto scroll-thin">
+          ${tabs.map(t => `
+            <button onclick="switchTab('${t.key}')" class="whitespace-nowrap px-3 py-2.5 text-sm font-medium border-b-2 transition-colors ${
+              currentTab === t.key
+                ? 'border-brand-600 text-brand-600'
+                : 'border-transparent text-zinc-500 hover:text-zinc-800'
+            }">
+              ${t.label}
+              <span class="ml-1.5 text-xs px-1.5 py-0.5 rounded ${
+                currentTab === t.key ? 'bg-brand-100 text-brand-700' : 'bg-zinc-100 text-zinc-600'
+              }">${tabCounts[t.key]}</span>
+              ${t.badge && tabCounts[t.key] > 0 ? '<span class="ml-1 inline-block w-1.5 h-1.5 bg-red-500 rounded-full"></span>' : ''}
+            </button>
+          `).join('')}
+        </div>
+
+        <!-- 筛选栏（flex-wrap 自动换行） -->
+        <div class="px-3 py-2.5 flex items-center flex-wrap gap-2 border-b border-zinc-200">
+          <div class="relative w-52 flex-shrink-0">
+            <svg class="absolute left-2.5 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+            <input oninput="currentSearch=this.value; render()" value="${currentSearch}" type="text" placeholder="搜索公司或岗位..." class="w-full pl-8 pr-2 py-1.5 text-sm border border-zinc-200 rounded-md focus:outline-none focus:ring-2 focus:ring-brand-500">
+          </div>
+          ${Object.entries(PRESET_TAGS).map(([dim, tags]) => `
+            <select onchange="toggleTagFilter(this.value); this.value=''" class="px-2 py-1.5 text-sm border border-zinc-200 rounded-md bg-white hover:border-brand-300 cursor-pointer flex-shrink-0">
+              <option value="">${dim}</option>
+              ${tags.map(t => `<option value="${t}">${t}</option>`).join('')}
+            </select>
+          `).join('')}
+          ${currentTagFilter.length ? `
+            <div class="flex items-center gap-1 flex-wrap">
+              ${currentTagFilter.map(t => `<span class="inline-flex items-center px-2 py-0.5 text-xs bg-brand-100 text-brand-700 rounded whitespace-nowrap">${t}<span onclick="removeTagFilter('${t}')" class="ml-1 cursor-pointer hover:text-brand-900">×</span></span>`).join('')}
+              <button onclick="currentTagFilter=[]; render()" class="text-xs text-zinc-500 hover:text-zinc-800 underline ml-1">清除</button>
+            </div>
+          ` : ''}
+        </div>
+      </div>
+
+      <!-- 表格（合并冗余列 + 横向滚动兜底） -->
+      <div class="bg-white rounded-b-xl border border-zinc-200 border-t-0 overflow-x-auto scroll-thin">
+        <table class="w-full text-sm" style="min-width: 860px;">
+          <thead class="bg-zinc-50 text-zinc-500 text-xs">
+            <tr>
+              <th class="px-4 py-2.5 text-left font-medium" style="width: 26%">公司 · 岗位</th>
+              <th class="px-2 py-2.5 text-left font-medium" style="width: 110px">优先级</th>
+              <th class="px-2 py-2.5 text-left font-medium" style="width: 130px">当前阶段</th>
+              <th class="px-4 py-2.5 text-left font-medium" style="width: 28%">下一步 / DDL</th>
+              <th class="px-4 py-2.5 text-left font-medium" style="width: 22%">标签</th>
+              <th class="px-2 py-2.5" style="width: 40px"></th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-zinc-100">
+            ${filtered.length === 0 ? `
+              <tr><td colspan="6" class="text-center py-16 text-zinc-400">
+                <div class="text-4xl mb-2">📭</div>
+                <div class="text-sm">这个分类下还没有申请记录</div>
+              </td></tr>
+            ` : filtered.map(app => `
+              <tr class="hover:bg-zinc-50 cursor-pointer" onclick="openDrawer('${app.id}')">
+                <!-- 公司 + 岗位 合并为一列，两行展示 -->
+                <td class="px-4 py-3">
+                  <div class="flex items-center min-w-0">
+                    <div class="w-8 h-8 rounded bg-gradient-to-br from-zinc-300 to-zinc-500 flex items-center justify-center text-white text-xs font-semibold mr-2.5 flex-shrink-0">
+                      ${app.company[0]}
+                    </div>
+                    <div class="min-w-0 flex-1">
+                      <div class="font-medium text-zinc-800 truncate" title="${app.company}">${app.company}</div>
+                      <div class="text-xs text-zinc-500 truncate" title="${app.position}">${app.position}</div>
+                    </div>
+                  </div>
+                </td>
+
+                <!-- 优先级 -->
+                <td class="px-2 py-3" onclick="event.stopPropagation()">
+                  <select class="inline-edit text-xs font-medium ${PRIORITY_STYLE[app.priority]?.cls||''} rounded" onchange="updateApp('${app.id}', {priority: this.value})">
+                    ${PRIORITIES.map(p => `<option value="${p}" ${p===app.priority?'selected':''}>${PRIORITY_STYLE[p].emoji} ${p}</option>`).join('')}
+                  </select>
+                </td>
+
+                <!-- 阶段 -->
+                <td class="px-2 py-3" onclick="event.stopPropagation()">
+                  <select class="inline-edit text-xs font-medium ${STAGE_STYLE[app.stage]||'bg-zinc-100'} rounded" onchange="updateApp('${app.id}', {stage: this.value})">
+                    ${STAGES.map(s => `<option ${s===app.stage?'selected':''}>${s}</option>`).join('')}
+                  </select>
+                </td>
+
+                <!-- 下一步 + DDL 合并，两行展示 -->
+                <td class="px-4 py-3">
+                  <div class="min-w-0">
+                    <div class="truncate text-zinc-700" title="${app.nextAction||''}">${app.nextAction || '<span class="text-zinc-400">—</span>'}</div>
+                    <div class="text-xs mt-0.5 ${ddlColor(app.deadline)}">${app.deadline ? ddlText(app.deadline) : '<span class="text-zinc-400">无 DDL</span>'}</div>
+                  </div>
+                </td>
+
+                <!-- 标签：最多 2 个，其余折叠 -->
+                <td class="px-4 py-3">
+                  <div class="flex items-center gap-1 min-w-0 overflow-hidden">
+                    ${(app.tags||[]).slice(0,2).map(t => `<span class="inline-block px-1.5 py-0.5 text-xs bg-zinc-100 text-zinc-600 rounded whitespace-nowrap">${t}</span>`).join('')}
+                    ${(app.tags||[]).length > 2 ? `<span class="text-xs text-zinc-400 whitespace-nowrap" title="${(app.tags||[]).slice(2).join('、')}">+${app.tags.length-2}</span>` : ''}
+                    ${(app.tags||[]).length === 0 ? '<span class="text-xs text-zinc-300">—</span>' : ''}
+                  </div>
+                </td>
+
+                <!-- 操作（hover 显示） -->
+                <td class="px-2 py-3 text-right" onclick="event.stopPropagation()">
+                  <button onclick="deleteApp('${app.id}')" class="row-actions text-zinc-400 hover:text-red-500 p-1" title="删除">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                  </button>
+                </td>
+              </tr>
+            `).join('')}
+          </tbody>
+        </table>
+      </div>
+
+      <!-- 提示：如何编辑被省略的字段 -->
+      <div class="mt-3 text-xs text-zinc-400 px-1">💡 点击任意一行打开详情，可编辑公司/岗位/下一步/DDL 等完整信息</div>
+    </div>
+  `;
+}
+
+function switchTab(tab) { currentTab = tab; render(); }
+function toggleTagFilter(tag) {
+  if (!tag) return;
+  if (!currentTagFilter.includes(tag)) currentTagFilter.push(tag);
+  render();
+}
+function removeTagFilter(tag) {
+  currentTagFilter = currentTagFilter.filter(t => t !== tag);
+  render();
+}
+
+/* ==========================================================
+   视图：设置页
+   ========================================================== */
+function renderSettings() {
+  const settings = loadSettings();
+  return `
+    <div class="max-w-3xl mx-auto px-8 py-8 fade-in">
+      <h1 class="text-2xl font-bold text-zinc-900 mb-6">设置</h1>
+
+      <div class="bg-white rounded-xl border border-zinc-200 p-6 mb-4">
+        <h2 class="font-semibold text-zinc-800 mb-4">个人信息</h2>
+        <div class="space-y-3">
+          <div class="flex items-center">
+            <span class="text-sm text-zinc-500 w-20">昵称</span>
+            <input id="setting-nickname" class="flex-1 px-3 py-2 text-sm border border-zinc-200 rounded-md focus:outline-none focus:ring-2 focus:ring-brand-500" value="${settings.nickname}" oninput="saveSettings({nickname: this.value})">
+          </div>
+          <div class="flex items-center">
+            <span class="text-sm text-zinc-500 w-20">邮箱</span>
+            <input id="setting-email" class="flex-1 px-3 py-2 text-sm border border-zinc-200 rounded-md focus:outline-none focus:ring-2 focus:ring-brand-500" value="${settings.email}" oninput="saveSettings({email: this.value})">
+          </div>
+        </div>
+        <div id="settings-save-hint" class="mt-3 text-xs text-green-600 opacity-0 transition-opacity">✓ 已自动保存</div>
+      </div>
+
+      <div class="bg-white rounded-xl border border-zinc-200 p-6 mb-4">
+        <h2 class="font-semibold text-zinc-800 mb-4">提醒偏好</h2>
+        <div class="space-y-3">
+          <label class="flex items-center"><input type="checkbox" checked class="mr-3"> <span class="text-sm">面试前 24 小时邮件提醒</span></label>
+          <label class="flex items-center"><input type="checkbox" checked class="mr-3"> <span class="text-sm">DDL 前 48 小时站内提醒</span></label>
+          <label class="flex items-center"><input type="checkbox" class="mr-3"> <span class="text-sm">投递超 14 天无响应时提醒</span></label>
+        </div>
+      </div>
+
+      <div class="bg-white rounded-xl border border-zinc-200 p-6 mb-4">
+        <h2 class="font-semibold text-zinc-800 mb-4">数据管理</h2>
+        <div class="flex gap-2">
+          <button onclick="exportData()" class="px-3 py-1.5 text-sm border border-zinc-200 rounded-md hover:bg-zinc-50">导出 JSON</button>
+          <button onclick="resetData()" class="px-3 py-1.5 text-sm border border-red-200 text-red-600 rounded-md hover:bg-red-50">重置演示数据</button>
+        </div>
+      </div>
+
+      <div class="text-center text-xs text-zinc-400 mt-8">OfferTrack Demo v1.0 · 仅用于产品演示</div>
+    </div>
+  `;
+}
+
+function exportData() {
+  const blob = new Blob([JSON.stringify(loadData(), null, 2)], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = 'offertrack-data.json';
+  a.click();
+}
+function resetData() {
+  if (!confirm('将重置为初始演示数据，当前所有记录会丢失，确定吗？')) return;
+  localStorage.removeItem(DB_KEY);
+  render();
+}
+
+/* ==========================================================
+   详情抽屉
+   ========================================================== */
+function openDrawer(id) {
+  const app = loadData().find(a => a.id === id);
+  if (!app) return;
+  document.getElementById('drawer-detail').classList.remove('hidden');
+  document.getElementById('drawer-content').innerHTML = renderDrawer(app);
+}
+function closeDrawer() {
+  document.getElementById('drawer-detail').classList.add('hidden');
+}
+
+function renderDrawer(app) {
+  return `
+    <div class="sticky top-0 bg-white border-b border-zinc-200 px-6 py-4 flex items-center justify-between z-10">
+      <div class="flex items-center min-w-0 flex-1">
+        <div class="w-10 h-10 rounded-lg bg-gradient-to-br from-zinc-300 to-zinc-500 flex items-center justify-center text-white font-bold mr-3 flex-shrink-0">
+          ${app.company[0]}
+        </div>
+        <div class="min-w-0 flex-1">
+          <input class="inline-edit font-semibold text-zinc-900 text-base w-full" value="${app.company}" onchange="updateApp('${app.id}', {company: this.value}); openDrawer('${app.id}')" placeholder="公司名称">
+          <input class="inline-edit text-xs text-zinc-500 w-full mt-0.5" value="${app.position}" onchange="updateApp('${app.id}', {position: this.value}); openDrawer('${app.id}')" placeholder="岗位名称">
+        </div>
+      </div>
+      <div class="flex items-center gap-2">
+        <button onclick="deleteApp('${app.id}')" class="text-zinc-400 hover:text-red-500 p-1.5">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+        </button>
+        <button onclick="closeDrawer()" class="text-zinc-400 hover:text-zinc-700 p-1.5">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+        </button>
+      </div>
+    </div>
+
+    <div class="p-6 space-y-6">
+      <!-- 状态 & 优先级 -->
+      <div class="flex gap-2">
+        <span class="inline-flex items-center px-2.5 py-1 text-xs font-medium rounded ${PRIORITY_STYLE[app.priority].cls}">
+          ${PRIORITY_STYLE[app.priority].emoji} ${app.priority}
+        </span>
+        <span class="inline-flex items-center px-2.5 py-1 text-xs font-medium rounded ${STAGE_STYLE[app.stage]||''}">
+          ${app.stage}
+        </span>
+      </div>
+
+      <!-- 快速操作 -->
+      <div class="bg-brand-50 rounded-lg p-4">
+        <div class="text-xs text-brand-700 mb-2 font-medium">快速推进状态</div>
+        <div class="flex flex-wrap gap-2">
+          ${getNextStages(app.stage).map(s => `
+            <button onclick="updateApp('${app.id}', {stage: '${s}'}); openDrawer('${app.id}')" class="px-3 py-1.5 text-xs bg-white border border-brand-200 text-brand-700 rounded hover:bg-brand-100">
+              → ${s}
+            </button>
+          `).join('')}
+        </div>
+      </div>
+
+      <!-- 基础信息（可编辑） -->
+      <div>
+        <h3 class="text-sm font-semibold text-zinc-800 mb-3">基础信息 <span class="text-xs text-zinc-400 font-normal ml-1">点击可编辑</span></h3>
+        <div class="bg-zinc-50 rounded-lg p-4 space-y-2.5 text-sm">
+          <div class="flex items-center"><span class="w-20 text-zinc-500 flex-shrink-0">公司</span><input class="inline-edit flex-1" value="${app.company}" onchange="updateApp('${app.id}', {company: this.value}); openDrawer('${app.id}')"></div>
+          <div class="flex items-center"><span class="w-20 text-zinc-500 flex-shrink-0">岗位</span><input class="inline-edit flex-1" value="${app.position}" onchange="updateApp('${app.id}', {position: this.value}); openDrawer('${app.id}')"></div>
+          <div class="flex items-center"><span class="w-20 text-zinc-500 flex-shrink-0">投递日期</span><input type="date" class="inline-edit flex-1" value="${app.applyDate||''}" onchange="updateApp('${app.id}', {applyDate: this.value})"></div>
+          <div class="flex items-center"><span class="w-20 text-zinc-500 flex-shrink-0">DDL</span><input type="date" class="inline-edit flex-1" value="${app.deadline||''}" onchange="updateApp('${app.id}', {deadline: this.value})"></div>
+          <div class="flex items-center"><span class="w-20 text-zinc-500 flex-shrink-0">投递渠道</span>
+            <select class="inline-edit flex-1" onchange="updateApp('${app.id}', {channel: this.value})">
+              ${CHANNELS.map(c => `<option ${c===app.channel?'selected':''}>${c}</option>`).join('')}
+            </select>
+          </div>
+          <div class="flex items-center"><span class="w-20 text-zinc-500 flex-shrink-0">工作地点</span><input class="inline-edit flex-1" value="${app.location||''}" placeholder="如：北京" onchange="updateApp('${app.id}', {location: this.value})"></div>
+          <div class="flex items-center"><span class="w-20 text-zinc-500 flex-shrink-0">薪资</span><input class="inline-edit flex-1" value="${app.salary||''}" placeholder="如：25-40k" onchange="updateApp('${app.id}', {salary: this.value})"></div>
+          <div class="flex items-center"><span class="w-20 text-zinc-500 flex-shrink-0">内推人</span><input class="inline-edit flex-1" value="${app.referrer||''}" placeholder="如：张同学" onchange="updateApp('${app.id}', {referrer: this.value})"></div>
+          <div class="flex items-center"><span class="w-20 text-zinc-500 flex-shrink-0">JD 链接</span><input class="inline-edit flex-1" value="${app.jdUrl||''}" placeholder="https://..." onchange="updateApp('${app.id}', {jdUrl: this.value})"></div>
+          <div class="flex items-center"><span class="w-20 text-zinc-500 flex-shrink-0">下一步</span><input class="inline-edit flex-1" value="${app.nextAction||''}" placeholder="如：完成在线笔试" onchange="updateApp('${app.id}', {nextAction: this.value})"></div>
+        </div>
+      </div>
+
+      <!-- 标签 -->
+      <div>
+        <h3 class="text-sm font-semibold text-zinc-800 mb-3">标签</h3>
+        <div class="flex flex-wrap gap-1.5">
+          ${(app.tags||[]).map(t => `<span class="inline-block px-2 py-1 text-xs bg-zinc-100 text-zinc-700 rounded">${t}</span>`).join('') || '<span class="text-xs text-zinc-400">暂无</span>'}
+        </div>
+      </div>
+
+      <!-- 面试轮次时间轴（可编辑） -->
+      <div>
+        <div class="flex items-center justify-between mb-3">
+          <h3 class="text-sm font-semibold text-zinc-800">面试轮次 <span class="text-xs text-zinc-400 font-normal ml-1">点击可编辑</span></h3>
+          <button onclick="addInterview('${app.id}')" class="text-xs px-2.5 py-1 bg-brand-50 text-brand-600 rounded hover:bg-brand-100 flex items-center gap-1">
+            <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+            添加轮次
+          </button>
+        </div>
+        ${(app.interviews||[]).length === 0 ? '<div class="text-xs text-zinc-400 text-center py-4">暂无面试记录，点击上方按钮添加</div>' : `
+        <div class="space-y-3">
+          ${(app.interviews||[]).map((iv, i) => `
+            <div class="flex group">
+              <div class="flex flex-col items-center mr-3">
+                <div class="w-3 h-3 rounded-full flex-shrink-0 ${iv.result==='通过'?'bg-green-500':iv.result==='待定'?'bg-blue-500':iv.result==='未通过'?'bg-red-400':'bg-zinc-300'}"></div>
+                ${i < (app.interviews||[]).length-1 ? '<div class="flex-1 w-px bg-zinc-200 mt-1"></div>' : ''}
+              </div>
+              <div class="flex-1 pb-3">
+                <div class="flex items-center gap-2 flex-wrap">
+                  <input class="inline-edit text-sm font-medium text-zinc-800 w-16" value="${iv.round}" onchange="updateInterview('${app.id}', ${i}, 'round', this.value)" placeholder="轮次">
+                  <select class="inline-edit text-xs font-medium rounded ${iv.result==='通过'?'bg-green-100 text-green-700':iv.result==='待定'?'bg-blue-100 text-blue-700':iv.result==='未通过'?'bg-red-100 text-red-600':'bg-zinc-100 text-zinc-500'}" onchange="updateInterview('${app.id}', ${i}, 'result', this.value)">
+                    <option ${iv.result==='待定'?'selected':''}>待定</option>
+                    <option ${iv.result==='通过'?'selected':''}>通过</option>
+                    <option ${iv.result==='未通过'?'selected':''}>未通过</option>
+                  </select>
+                  <button onclick="deleteInterview('${app.id}', ${i})" class="opacity-0 group-hover:opacity-100 transition-opacity text-zinc-400 hover:text-red-500 p-0.5" title="删除此轮">
+                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                  </button>
+                </div>
+                <input type="datetime-local" class="inline-edit text-xs text-zinc-500 mt-0.5 w-44" value="${(iv.time||'').replace(' ','T')}" onchange="updateInterview('${app.id}', ${i}, 'time', this.value.replace('T',' '))">
+                <textarea class="inline-edit text-xs text-zinc-600 mt-1 w-full min-h-[32px] bg-zinc-50 rounded p-2 resize-none focus:bg-white focus:outline-none focus:ring-1 focus:ring-brand-500" placeholder="面试笔记..." onchange="updateInterview('${app.id}', ${i}, 'notes', this.value)">${iv.notes||''}</textarea>
+              </div>
+            </div>
+          `).join('')}
+        </div>`}
+      </div>
+
+      <!-- 笔记 -->
+      <div>
+        <h3 class="text-sm font-semibold text-zinc-800 mb-3">笔记</h3>
+        <textarea onchange="updateApp('${app.id}', {notes: this.value})" class="w-full px-3 py-2 text-sm border border-zinc-200 rounded-md min-h-[100px] focus:outline-none focus:ring-2 focus:ring-brand-500" placeholder="记录面试感受、公司印象、需要注意的点...">${app.notes||''}</textarea>
+      </div>
+    </div>
+  `;
+}
+
+function getNextStages(current) {
+  const flow = {
+    '待网申': ['已投递'],
+    '已投递': ['待笔试', '一面', '已拒'],
+    '待笔试': ['已笔试', '已拒'],
+    '已笔试': ['一面', '已拒'],
+    '一面': ['二面', '已拒'],
+    '二面': ['终面', '已拒'],
+    '终面': ['HR面', 'Offer', '已拒'],
+    'HR面': ['Offer', '已拒'],
+    '待回复Offer': ['已签约', '已放弃'],
+    'Offer': ['已签约', '已放弃']
+  };
+  return flow[current] || ['已放弃'];
+}
+
+/* 面试轮次 CRUD */
+function updateInterview(appId, index, field, value) {
+  const data = loadData();
+  const app = data.find(a => a.id === appId);
+  if (!app || !app.interviews || !app.interviews[index]) return;
+  app.interviews[index][field] = value;
+  saveData(data);
+  openDrawer(appId);
+}
+function deleteInterview(appId, index) {
+  if (!confirm('确定删除这一轮面试记录吗？')) return;
+  const data = loadData();
+  const app = data.find(a => a.id === appId);
+  if (!app || !app.interviews) return;
+  app.interviews.splice(index, 1);
+  saveData(data);
+  openDrawer(appId);
+}
+function addInterview(appId) {
+  const data = loadData();
+  const app = data.find(a => a.id === appId);
+  if (!app) return;
+  if (!app.interviews) app.interviews = [];
+  const rounds = ['一面','二面','三面','终面','HR面'];
+  const nextRound = rounds[app.interviews.length] || `第${app.interviews.length+1}轮`;
+  app.interviews.push({ round: nextRound, time: '', result: '待定', notes: '' });
+  saveData(data);
+  openDrawer(appId);
+}
+
+/* ==========================================================
+   Modal 控制
+   ========================================================== */
+function openModal(id) {
+  document.getElementById(id).classList.remove('hidden');
+  if (id === 'modal-new') initNewForm();
+}
+function closeModal(id) {
+  document.getElementById(id).classList.add('hidden');
+}
+
+function initNewForm() {
+  const stageSelect = document.getElementById('f-stage');
+  stageSelect.innerHTML = STAGES.map(s => `<option>${s}</option>`).join('');
+  stageSelect.value = '已投递';
+
+  // 初始化标签选择
+  const tagContainer = document.getElementById('f-tags');
+  let selectedTags = [];
+  tagContainer.innerHTML = '';
+  Object.entries(PRESET_TAGS).forEach(([dim, tags]) => {
+    tags.forEach(t => {
+      const btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'px-2 py-1 text-xs border border-zinc-200 text-zinc-600 rounded hover:border-brand-300';
+      btn.textContent = t;
+      btn.onclick = () => {
+        if (selectedTags.includes(t)) {
+          selectedTags = selectedTags.filter(x => x !== t);
+          btn.className = 'px-2 py-1 text-xs border border-zinc-200 text-zinc-600 rounded hover:border-brand-300';
+        } else {
+          selectedTags.push(t);
+          btn.className = 'px-2 py-1 text-xs border border-brand-500 bg-brand-50 text-brand-700 rounded';
+        }
+        tagContainer.dataset.selected = JSON.stringify(selectedTags);
+      };
+      tagContainer.appendChild(btn);
+    });
+  });
+  tagContainer.dataset.selected = '[]';
+
+  // 清空其他字段
+  ['f-company', 'f-position', 'f-next-action', 'f-deadline', 'jd-url'].forEach(id => {
+    document.getElementById(id).value = '';
+  });
+  document.getElementById('jd-result').classList.add('hidden');
+}
+
+function parseJD() {
+  const url = document.getElementById('jd-url').value.trim();
+  if (!url) { alert('请先粘贴 JD 链接'); return; }
+  // Mock 解析：根据 URL 关键词猜测
+  const mockResults = [
+    { company: '字节跳动', position: '产品经理', tags: ['互联网', '产品', '北京'] },
+    { company: '腾讯', position: '数据分析师', tags: ['互联网', '数据', '深圳'] },
+    { company: '美团', position: '运营', tags: ['互联网', '运营', '北京'] }
+  ];
+  const pick = mockResults[Math.floor(Math.random() * mockResults.length)];
+  document.getElementById('f-company').value = pick.company;
+  document.getElementById('f-position').value = pick.position;
+  // 自动勾选标签
+  setTimeout(() => {
+    const tagContainer = document.getElementById('f-tags');
+    tagContainer.querySelectorAll('button').forEach(btn => {
+      if (pick.tags.includes(btn.textContent)) btn.click();
+    });
+    document.getElementById('jd-result').classList.remove('hidden');
+  }, 400);
+}
+
+function submitNew() {
+  const company = document.getElementById('f-company').value.trim();
+  const position = document.getElementById('f-position').value.trim();
+  if (!company || !position) { alert('公司和岗位为必填项'); return; }
+
+  const tagContainer = document.getElementById('f-tags');
+  const tags = JSON.parse(tagContainer.dataset.selected || '[]');
+
+  addApp({
+    company, position,
+    priority: document.getElementById('f-priority').value,
+    stage: document.getElementById('f-stage').value,
+    nextAction: document.getElementById('f-next-action').value,
+    deadline: document.getElementById('f-deadline').value,
+    applyDate: new Date().toISOString().slice(0, 10),
+    channel: document.getElementById('f-channel').value,
+    tags,
+    jdUrl: document.getElementById('jd-url').value,
+    notes: '', interviews: [],
+    location: '', salary: '', referrer: ''
+  });
+  closeModal('modal-new');
+}
+
+/* ==========================================================
+   主渲染
+   ========================================================== */
+function render() {
+  const main = document.getElementById('main-content');
+  let html = '';
+  switch(currentRoute) {
+    case 'dashboard': html = renderDashboard(); break;
+    case 'applications': html = renderApplications(); break;
+    case 'settings': html = renderSettings(); break;
+  }
+  main.innerHTML = html;
+}
+
+// 初始化
+syncSidebar();
+navigate('dashboard');
+</script>
+
+</body>
+</html>
