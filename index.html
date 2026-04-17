@@ -403,9 +403,11 @@ function addApp(app) {
    ========================================================== */
 function daysUntil(dateStr) {
   if (!dateStr) return null;
-  const target = new Date(dateStr + 'T23:59:59');
+  const targetStr = dateStr.length === 10 ? dateStr : dateStr.slice(0, 10).replace(/\//g, '-');
+  const target = new Date(targetStr + 'T00:00:00');
   const now = new Date();
-  return Math.ceil((target - now) / (1000 * 60 * 60 * 24));
+  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  return Math.round((target - today) / (1000 * 60 * 60 * 24));
 }
 function ddlColor(dateStr) {
   const d = daysUntil(dateStr);
@@ -418,11 +420,12 @@ function ddlColor(dateStr) {
 function ddlText(dateStr) {
   if (!dateStr) return '—';
   const d = daysUntil(dateStr);
-  if (d < 0) return dateStr + ' · 已过期';
-  if (d === 0) return dateStr + ' · 今天';
-  if (d === 1) return dateStr + ' · 明天';
-  if (d < 7) return dateStr + ` · ${d}天后`;
-  return dateStr;
+  const showStr = dateStr.slice(0, 16);
+  if (d < 0) return showStr + ' · 已过期';
+  if (d === 0) return showStr + ' · 今天';
+  if (d === 1) return showStr + ' · 明天';
+  if (d < 7) return showStr + ` · ${d}天后`;
+  return showStr;
 }
 function daysSince(dateStr) {
   if (!dateStr) return null;
@@ -463,7 +466,7 @@ function renderDashboard() {
   // 今天必做：今日 DDL + 今日面试
   const todayTasks = [];
   data.forEach(app => {
-    if (app.deadline === today) {
+    if (app.deadline?.startsWith(today)) {
       todayTasks.push({ type: 'ddl', app, label: app.nextAction || '处理 DDL' });
     }
     app.interviews?.forEach(iv => {
@@ -882,7 +885,7 @@ function renderDrawer(app) {
           <div class="flex items-center"><span class="w-20 text-zinc-500 flex-shrink-0">公司</span><input class="inline-edit flex-1" value="${app.company}" onchange="updateApp('${app.id}', {company: this.value}); openDrawer('${app.id}')"></div>
           <div class="flex items-center"><span class="w-20 text-zinc-500 flex-shrink-0">岗位</span><input class="inline-edit flex-1" value="${app.position}" onchange="updateApp('${app.id}', {position: this.value}); openDrawer('${app.id}')"></div>
           <div class="flex items-center"><span class="w-20 text-zinc-500 flex-shrink-0">投递日期</span><input type="date" class="inline-edit flex-1" value="${app.applyDate||''}" onchange="updateApp('${app.id}', {applyDate: this.value})"></div>
-          <div class="flex items-center"><span class="w-20 text-zinc-500 flex-shrink-0">DDL</span><input type="date" class="inline-edit flex-1" value="${app.deadline||''}" onchange="updateApp('${app.id}', {deadline: this.value})"></div>
+          <div class="flex items-center"><span class="w-20 text-zinc-500 flex-shrink-0">DDL</span><input type="datetime-local" class="inline-edit flex-1" value="${app.deadline ? (app.deadline.length===10?app.deadline+'T23:59':app.deadline.replace(' ','T')) : ''}" onchange="updateApp('${app.id}', {deadline: this.value.replace('T', ' ')})"></div>
           <div class="flex items-center"><span class="w-20 text-zinc-500 flex-shrink-0">投递渠道</span>
             <select class="inline-edit flex-1" onchange="updateApp('${app.id}', {channel: this.value})">
               ${CHANNELS.map(c => `<option ${c===app.channel?'selected':''}>${c}</option>`).join('')}
