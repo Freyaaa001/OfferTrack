@@ -973,6 +973,7 @@ function updateInterview(appId, index, field, value) {
   if (!app || !app.interviews || !app.interviews[index]) return;
   app.interviews[index][field] = value;
   saveData(data);
+  render();
   openDrawer(appId);
 }
 function deleteInterview(appId, index) {
@@ -982,6 +983,7 @@ function deleteInterview(appId, index) {
   if (!app || !app.interviews) return;
   app.interviews.splice(index, 1);
   saveData(data);
+  render();
   openDrawer(appId);
 }
 function addInterview(appId) {
@@ -993,6 +995,7 @@ function addInterview(appId) {
   const nextRound = rounds[app.interviews.length] || `第${app.interviews.length+1}轮`;
   app.interviews.push({ round: nextRound, time: '', result: '待定', notes: '' });
   saveData(data);
+  render();
   openDrawer(appId);
 }
 
